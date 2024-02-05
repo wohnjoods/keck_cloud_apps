@@ -2,8 +2,8 @@ import csv
 import http
 import requests
 import json
+subprocess.check_call([sys.executable, "-m", "pip", "install", "msal"])
 import msal
-#pip install msal
 
 
 
@@ -15,11 +15,11 @@ def get_access_token(tenantID,clientID,clientSecret,dfcaID):
     #acquire_token_for_client
     return access_token
 
-tenantID = "b9ab4823-9b88-43a4-aa4b-5dce84bf2e83" #REPLACE
-clientID = "8bf43e4a-7332-42b5-b740-98ab61b6a7c5" #REPLACE
-clientSecret = ".ER8Q~MkU4Zxkk1Saal8uBYsF7jj.fd1KNnggaYt" #REPLACE
-tenant_name = "M365x91169954" #REPLACE
-tenant_region = 'us2' #REPLACE
+tenantID = "" #REPLACE
+clientID = "" #REPLACE
+clientSecret = "" #REPLACE
+tenant_name = "" #REPLACE
+tenant_region = '' #REPLACE
 dfcaID = '05a65629-4c1b-48c1-a78b-804c4abdd4af'
 OPTION_DELETE_ENABLED = False
 #tenant_id = 
