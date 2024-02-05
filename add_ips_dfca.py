@@ -2,15 +2,42 @@ import csv
 import http
 import requests
 import json
- 
+import msal
+#pip install msal
+
+
+
+def get_access_token(tenantID,clientID,clientSecret,dfcaID):
+    authority = "https://login.microsoftonline.com/"+tenantID#+"/oauth2/token"
+    scope = [dfcaID+'/.default']#['https://graph.microsoft.com/.default']
+    app = msal.ConfidentialClientApplication(clientID, authority=authority, client_credential = clientSecret)
+    access_token = app.acquire_token_for_client(scopes=scope)
+    #acquire_token_for_client
+    return access_token
+
+tenantID = "b9ab4823-9b88-43a4-aa4b-5dce84bf2e83" #REPLACE
+clientID = "8bf43e4a-7332-42b5-b740-98ab61b6a7c5" #REPLACE
+clientSecret = ".ER8Q~MkU4Zxkk1Saal8uBYsF7jj.fd1KNnggaYt" #REPLACE
+tenant_name = "M365x91169954" #REPLACE
+tenant_region = 'us2' #REPLACE
+dfcaID = '05a65629-4c1b-48c1-a78b-804c4abdd4af'
 OPTION_DELETE_ENABLED = False
-IP_RANGES_BASE_URL = 'https://<tenant_id>.<tenant_region>.portal.cloudappsecurity.com/api/v1/subnet/'
+#tenant_id = 
+COMBINE_ROWS = True #UPDATE
+COMBINED_IP_RANGE_NAME = "Risky IP Import"#UPDATE
+COMBINED_IP_RANGE_CATEGORY = "3"
+COMBINED_IP_RANGE_TAG = ""
+COMBINED_IP_ISP_NAME = ""
+IP_RANGES_BASE_URL = 'https://'+tenant_name+'.'+tenant_region+'.portal.cloudappsecurity.com/api/v1/subnet/'
 IP_RANGES_UPDATE_SUFFIX = 'update_rule/'
 IP_RANGES_CREATE_SUFFIX = 'create_rule/'
-CSV_ABSOLUTE_PATH = 'rules.csv'
-YOUR_TOKEN = '<your_token>'
+CSV_ABSOLUTE_PATH = 'bad_ips.csv' #ENSURE CORRECT
+access_token = get_access_token(tenantID,clientID,clientSecret,dfcaID)
+YOUR_TOKEN = access_token['access_token']
+#print(YOUR_TOKEN)
+
 HEADERS = {
-  'Authorization': 'Token {}'.format(YOUR_TOKEN),
+  'Authorization': 'Bearer {}'.format(YOUR_TOKEN),
   'Content-Type': 'application/json'
 }
  
@@ -95,12 +122,24 @@ def main():
     reader = csv.reader(your_file, delimiter=',')
     # move the reader object to point on the next row, headers are not needed
     next(reader)
+    if COMBINE_ROWS:
+      all_ips = ""
+      for row in reader:
+        all_ips += str(row[1])
+        all_ips += " "
+      all_ips = all_ips.strip()
+      reader = [[COMBINED_IP_RANGE_NAME,all_ips,COMBINED_IP_RANGE_CATEGORY,COMBINED_IP_RANGE_TAG,COMBINED_IP_ISP_NAME]]
+      
+      
+
     for row in reader:
       name, ip_address_ranges, category, tag, isp_name = row
+      
       request_data = create_request_data(name, ip_address_ranges, category, tag, isp_name)
       if records:
       # Existing records were retrieved from your tenant
         record = create_update_rule(name, ip_address_ranges, category, tag, isp_name, records, request_data)
+        print(record)
         record_id = record['_id']
       else:
         # No existing records were retrieved from your tenant
